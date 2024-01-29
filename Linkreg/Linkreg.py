@@ -281,7 +281,6 @@ def shared_matrix(shared_D, g, array_size1, array_size2):
 if __name__ == '__main__':
     import logging
     import argparse
-    from model6 import model
     from data_process import process
     from gene_class import gene_class
 
