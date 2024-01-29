@@ -1,8 +1,8 @@
 import multiprocessing
 import numpy as np
-#from scipy.stats import norm
+from scipy.stats import norm
 import copy
-#from qpsolvers import solve_qp
+from qpsolvers import solve_qp
 from datetime import datetime
 import logging
 #logger = logging.getLogger(__name__)
@@ -102,7 +102,7 @@ def mtnm(yg, Dg, sigmag, alphag, pig, nc, Kg, lg, scaleg, scale_change, g, conve
                 print('%d gene, np.dot(yg, x)<0' % g)
                 return alpha_sumk, alphag, sigmag, scaleg, -1
             scaleg = 1/denominator*numerator
-        if n_iter >= 200:
+        if n_iter >= 300:
             print('%d gene, SUSIE not convergent: %f' % (g, np.max(ans)))
             return alpha_sumk, alphag, sigmag, scaleg, -1
     return alpha_sumk, alphag, sigmag, scaleg, 1
@@ -170,7 +170,7 @@ def model(X, y, K=None, n_iter=200, parallel=True, genes=None, allow_scale_chang
     while True:
         ans = [max_diff(beta_hat*scales[i], beta_old*scales_old[i]) for i in range(len(scales)) if converge[i]==1]
         now = datetime.now()
-        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        dt_string = now.strftime("%m/%d/%Y %H:%M:%S")
         print(dt_string, 'Relative change: %.4f' % np.max(ans))
         beta_old = beta_hat
         
@@ -278,3 +278,76 @@ def shared_matrix(shared_D, g, array_size1, array_size2):
     shared_array_g = shared_array[(g*array_size1*array_size2):((g+1)*array_size1*array_size2)].reshape(array_size1, array_size2)
     return shared_array_g
 
+if __name__ == '__main__':
+    import logging
+    import argparse
+    from model6 import model
+    from data_process import process
+    from gene_class import gene_class
+
+    def expand_feature(feature, distances, trsd):
+        idxs = []
+        trsd = trsd + [float('inf')]
+        for distance in distances:
+            idx = 0
+            while idx < len(trsd) and distance >= trsd[idx]:
+                idx += 1
+            idxs.append(idx)
+        zeros = [0] * len(feature[0][0])
+        new_Xg = []
+        for i in range(len(feature)):
+            Xgi = [zeros*(idx) + _cCRE + zeros*(len(trsd)-idx-1) for idx, _cCRE in zip(idxs, feature[i])]
+            new_Xg.append(Xgi)
+        return new_Xg
+
+    logger = logging.getLogger(__name__)
+    parser = argparse.ArgumentParser(description='Linkreg')
+    parser.add_argument('--expression_input', type=str, default='')
+    parser.add_argument('--tracks_input', type=str, nargs='+', default=[''])
+    parser.add_argument('--output', type=str, default='')
+    parser.add_argument('--Kg', type=int, default=15)
+    parser.add_argument('--distance', type=int, default=500000)
+    args = parser.parse_args()
+
+    genes = process(args.expression_input, args.tracks_input, args.distance)
+    X, y = [], []
+    pi, K = [], []
+    for g in range(len(genes)):
+        gene = genes[g]
+        distances = np.abs(np.mean(gene.cCRE_loc, axis=1)-gene.tss)
+        prior = np.exp((-distances/100000).astype(float))
+        prior /= np.sum(prior)
+        #idx = np.where(gene.expression!=0)[0]
+        #if len(idx) <= 30:
+        #    continue
+        if not isinstance(gene.cCRE, list):
+            cCRE = gene.cCRE.tolist()
+        Xg = [[cCRE[i*gene.cell_num+j] for i in range(int(gene.cCRE_num))] for j in range(gene.cell_num)]
+        trsd = [100000]
+        Xg = expand_feature(Xg, distances, trsd=trsd)
+        X.append(Xg)
+        y.append(np.array(gene.expression))
+        #y.append(np.array(gene.expression))
+        K.append(args.Kg)
+        pi.append([prior.tolist() for _ in range(K[-1])])
+    alpha, beta_hat, sigma, beta_track, est, K, scales, converge, variance = model(X, y, K=K, genes=genes, parallel=True, allow_scale_change=False, scale_change=False, norm_beta=False, pi=pi, ridge=0)
+    pip = cal_pip(alpha, len(genes))
+
+    for i in range(len(genes)):
+        genes[i].pip = pip[i]
+        genes[i].alpha = alpha[i]
+        genes[i].sigma = sigma[i]
+        genes[i].beta = beta_hat
+        genes[i].runk = K[i]
+        genes[i].scale = scales[i]
+        genes[i].converge = converge[i]
+        genes[i].std = np.sqrt(np.diag(variance))
+        genes[i].trsd = trsd
+
+    results = []
+    for gene in genes:
+        for i in range(gene.cCRE_num):
+            results.append([gene.chromosome, gene.gene_body[0], gene.gene_body[1], gene.ID, gene.strand, gene.cCRE_loc[0], gene.cCRE_loc[1]])
+            results[-1] += (gene.cCRE[i*gene.cell_num+np.arange(gene.cell_num), 0]*gene.pip[i]).tolist()
+
+    np.savetxt(args.output, results, delimiter='\t', fmt='%s')
