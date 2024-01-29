@@ -13,11 +13,11 @@ Open terminal and type following:
 
 1. Gene expression data file, separated by '\t'. Format: gene by biosample. Example:
 
-|      | biosample1 | biosample2 | ... |
-|------|------------|------------|-----|
-| gene1 | 1.5        | 2.5        | ... |
-| gene2 | 3.5        | 0.5        | ... |
-| ...  | ...        | ...        | ... |
+|      | chromosome | gene_start | gene_end | strand | biosample1 | biosample2 | ... |
+|------|------------|------------|----------|--------|------------|------------|-----|
+| gene1 | chr1       | 50         | 60       | +      | 1.5        | 2.7        | ... |
+| gene2 | chr1       | 70         | 80       | -      | 3.1        | 1.8        | ... |
+| ...  | ...        | ...        | ...      | ...    | ...        | ...        | ... |
 
 2. Track data file, separated by '\t'. Format: cCRE by biosample. Example:
 
