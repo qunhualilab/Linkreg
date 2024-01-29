@@ -43,4 +43,4 @@ cCRE-gene link score files. Format: pair by biosample. Example:
 
 In your terminal, type
 
-```Linkreg --expression_input ./data/expression.tpm --tracks_input ./data/DNase.bed ./data/H3K4me1.bed --output ./results/```
+```Linkreg --expression_input ./data/expression.bed --tracks_input ./data/DNase.bed ./data/H3K4me1.bed --output ./results/```
