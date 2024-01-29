@@ -278,6 +278,16 @@ def shared_matrix(shared_D, g, array_size1, array_size2):
     shared_array_g = shared_array[(g*array_size1*array_size2):((g+1)*array_size1*array_size2)].reshape(array_size1, array_size2)
     return shared_array_g
 
+def cal_pip(alpha, ng):
+    pip = []
+    for g in range(ng):
+        ans = 1
+        for k in range(len(alpha[g])):
+            ans *= (1-np.array(alpha[g][k]))
+        pip.append(1-ans)
+    #pip = np.array(pip)
+    return pip
+
 if __name__ == '__main__':
     import logging
     import argparse
