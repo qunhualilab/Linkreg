@@ -13,10 +13,10 @@ Open terminal and type following:
 
 1. Gene expression data file, separated by '\t'. Format: gene by biosample. Example:
 
-| chromosome | gene_ids | gene_start | gene_end | strand | biosample1 | biosample2 | ... |
-|------|------------|------------|----------|--------|------------|------------|-----|
-| chr1 | gene1       | 50         | 60       | +      | 1.5        | 2.7        | ... |
-| chr1 | gene2       | 70         | 80       | -      | 3.1        | 1.8        | ... |
+| chromosome | gene_start | gene_end | gene_ids | strand | biosample1 | biosample2 | ... |
+|------|------------|----------|------------|--------|------------|------------|-----|
+| chr1 | 50         | 60       | gene1       | +      | 1.5        | 2.7        | ... |
+| chr1 | 70         | 80       | gene2       | -      | 3.1        | 1.8        | ... |
 | ...  | ...        | ...        | ...      | ...    | ...        | ...        | ... |
 
 'gene1' and 'gene2' are the ids of the genes.
@@ -33,10 +33,10 @@ Open terminal and type following:
 
 cCRE-gene link score files. Format: pair by biosample. Example:
 
-| chromosome | gene_ids | gene_start | gene_end | strand | cCRE_start | cCRE_end | biosample1 | biosample2 | ... |
+| chromosome | gene_start | gene_end | gene_ids | strand | cCRE_start | cCRE_end | biosample1 | biosample2 | ... |
 |------------|-------|------------|----------|--------|------------|----------|------------|------------|-----|
-| chr1       | gene1 | 50         | 60       | +      | 100        | 150      | 0.9        | 0.7        | ... |
-| chr1       | gene2 | 70         | 80       | -      | 300        | 320      | 0.1        | 0.8        | ... |
+| chr1       | 50         | 60       | gene1 | +      | 100        | 150      | 0.9        | 0.7        | ... |
+| chr1       | 70         | 80       | gene2 | -      | 300        | 320      | 0.1        | 0.8        | ... |
 | ...        | ...   | ...        | ...      | ...    | ...        | ...      | ...        | ...        | ... |
 
 # Example run
