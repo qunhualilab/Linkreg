@@ -250,10 +250,6 @@ def model(X, y, K=None, n_iter=200, parallel=True, genes=None, allow_scale_chang
         if parallel==True:
             cores = multiprocessing.cpu_count()
             pool = multiprocessing.Pool(processes=cores)
-            #num_arrays = len(D)
-            #array_size1 = len(D[0])
-            #array_size2 = len(D[0][0])
-            #shared_D = create_shared_memory(D)
             
             with multiprocessing.pool.Pool(context=ctx) as pool:
                 tasks = [(y[g], D[g], sigma[g], alpha[g], pi[g], nc[g], K[g], l[g], scales[g], scale_change, g, converge[g]) for g in range(ng)]
@@ -275,16 +271,6 @@ def model(X, y, K=None, n_iter=200, parallel=True, genes=None, allow_scale_chang
         if ng == 1:
             converge = np.array([1])
     return alpha, beta_hat, sigma, beta_track, est, K, scales, converge, cal_variance(X, y, K, alpha, sigma, converge, beta_hat)
-
-def create_shared_memory(D):
-    flattened_D = np.array(D).ravel()
-    shared_D = multiprocessing.Array('d', flattened_D)
-    return shared_D
-
-def shared_matrix(shared_D, g, array_size1, array_size2):
-    shared_array = np.ctypeslib.as_array(shared_D.get_obj())
-    shared_array_g = shared_array[(g*array_size1*array_size2):((g+1)*array_size1*array_size2)].reshape(array_size1, array_size2)
-    return shared_array_g
 
 def cal_pip(alpha, ng):
     pip = []
