@@ -6,7 +6,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'Linkreg=Linkreg.Linkreg:Linkreg',  # "script_name=package.module:function"
+            'Linkreg=Linkreg.Linkreg:main',  # "script_name=package.module:function"
         ],
     },
     # Add more metadata as needed
