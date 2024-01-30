@@ -22,7 +22,7 @@ def process(expression_file, track_files, distance=500000):
         locations = np.array(tracks_ch[0][:, :2])
         tracks_ch = [track[:, 2:] for track in tracks_ch]
         for row in expression_ch:
-            gene = gene_class(cell_num=cell_num, expression=list(row[5:]), gene_body=list(row[1:3]), strand=row[4], gene_symbol=row[3], chromosome=row[0])
+            gene = gene_class(ID=row[3], cell_num=cell_num, expression=list(row[5:]), gene_body=list(row[1:3]), strand=row[4], chromosome=row[0])
             # cCRE, cCRE_loc
             cCRE, cCRE_loc = find_values_within_distance(locations, tracks_ch, gene.tss, distance)
             gene.cCRE_loc = cCRE_loc
