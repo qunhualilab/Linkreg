@@ -11,6 +11,10 @@ import logging
 
 #import logging
 import argparse
+import sys
+import os
+sys.path.append(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))))
 from data_process import process
 from gene_class import gene_class
 
@@ -350,7 +354,7 @@ def Linkreg(expression_file, track_files, output, Kg=15, distance=500000):
             results[-1] += (gene.cCRE[i*gene.cell_num+np.arange(gene.cell_num), 0]*gene.pip[i]).tolist()
     np.savetxt(output, results, delimiter='\t', fmt='%s')
 
-if __name__ == '__main__':
+def main():
     logger = logging.getLogger(__name__)
     parser = argparse.ArgumentParser(description='Linkreg')
     parser.add_argument('--expression_input', type=str, default='')
@@ -360,3 +364,6 @@ if __name__ == '__main__':
     parser.add_argument('--distance', type=int, default=500000)
     args = parser.parse_args()
     Linkreg(args.expression_input, args.tracks_input, args.output, args.Kg, args.distance)
+
+if __name__ == '__main__':
+    main()
