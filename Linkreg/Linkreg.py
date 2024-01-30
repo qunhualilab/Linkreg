@@ -9,6 +9,11 @@ import logging
 #logging.basicConfig(level=logging.INFO, datefmt='%Y/%m/%d %H:%M:%S', format='%(asctime)s - %(levelname)s - %(message)s', handlers=[logging.StreamHandler()])
 #ctx = multiprocessing.get_context('spawn')
 
+#import logging
+import argparse
+from data_process import process
+from gene_class import gene_class
+
 def estimate(D, ymean, alpha_sumk):
     return [np.dot(Dg, alpha_sumk[g]) + ymean[g] for g, Dg in enumerate(D)]
 
@@ -288,27 +293,22 @@ def cal_pip(alpha, ng):
     #pip = np.array(pip)
     return pip
 
-if __name__ == '__main__':
-    import logging
-    import argparse
-    from data_process import process
-    from gene_class import gene_class
-
-    def expand_feature(feature, distances, trsd):
-        idxs = []
-        trsd = trsd + [float('inf')]
-        for distance in distances:
-            idx = 0
-            while idx < len(trsd) and distance >= trsd[idx]:
-                idx += 1
-            idxs.append(idx)
-        zeros = [0] * len(feature[0][0])
-        new_Xg = []
-        for i in range(len(feature)):
-            Xgi = [zeros*(idx) + _cCRE + zeros*(len(trsd)-idx-1) for idx, _cCRE in zip(idxs, feature[i])]
-            new_Xg.append(Xgi)
-        return new_Xg
-
+def expand_feature(feature, distances, trsd):
+    idxs = []
+    trsd = trsd + [float('inf')]
+    for distance in distances:
+        idx = 0
+        while idx < len(trsd) and distance >= trsd[idx]:
+            idx += 1
+        idxs.append(idx)
+    zeros = [0] * len(feature[0][0])
+    new_Xg = []
+    for i in range(len(feature)):
+        Xgi = [zeros*(idx) + _cCRE + zeros*(len(trsd)-idx-1) for idx, _cCRE in zip(idxs, feature[i])]
+        new_Xg.append(Xgi)
+    return new_Xg
+    
+def Linkreg(expression_file, track_files, output):
     logger = logging.getLogger(__name__)
     parser = argparse.ArgumentParser(description='Linkreg')
     parser.add_argument('--expression_input', type=str, default='')
@@ -317,7 +317,6 @@ if __name__ == '__main__':
     parser.add_argument('--Kg', type=int, default=15)
     parser.add_argument('--distance', type=int, default=500000)
     args = parser.parse_args()
-
     genes = process(args.expression_input, args.tracks_input, args.distance)
     X, y = [], []
     pi, K = [], []
@@ -341,7 +340,6 @@ if __name__ == '__main__':
         pi.append([prior.tolist() for _ in range(K[-1])])
     alpha, beta_hat, sigma, beta_track, est, K, scales, converge, variance = model(X, y, K=K, genes=genes, parallel=True, allow_scale_change=False, scale_change=False, norm_beta=False, pi=pi, ridge=0)
     pip = cal_pip(alpha, len(genes))
-
     for i in range(len(genes)):
         genes[i].pip = pip[i]
         genes[i].alpha = alpha[i]
@@ -359,4 +357,5 @@ if __name__ == '__main__':
             results.append([gene.chromosome, gene.gene_body[0], gene.gene_body[1], gene.ID, gene.strand, gene.cCRE_loc[0], gene.cCRE_loc[1]])
             results[-1] += (gene.cCRE[i*gene.cell_num+np.arange(gene.cell_num), 0]*gene.pip[i]).tolist()
 
-    np.savetxt(args.output, results, delimiter='\t', fmt='%s')
+if __name__ == '__main__':
+    Linkreg()
