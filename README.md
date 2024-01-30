@@ -43,15 +43,19 @@ cCRE-gene link score files. Format: pair by biosample. Example:
 
 In your terminal, type
 
-```python3 Linkreg.py --expression_input ../data/expression.bed --tracks_input ../data/DNase.bed ../data/H3K4me1.bed --output ../results/example_results.bed```
+```
+python3 Linkreg.py --expression_input ../data/expression.bed --tracks_input ../data/DNase.bed ../data/H3K4me1.bed --output ../results/example_results.bed
+```
 
 or the CLI
 
-```Linkreg --expression_input ../data/expression.bed --tracks_input ../data/DNase.bed ../data/H3K4me1.bed --output ../results/example_results.bed```
+```
+Linkreg --expression_input ../data/expression.bed --tracks_input ../data/DNase.bed ../data/H3K4me1.bed --output ../results/example_results.bed
+```
 
 In the python script, type
 
 ```
-import Linkreg
+from Linkreg import Linkreg
 Linkreg(expression_file='../data/expression.bed', track_files=['../data/DNase.bed', '../data/H3K4me1.bed'], output='../results/example_results.bed')
 ```
