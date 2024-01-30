@@ -308,16 +308,8 @@ def expand_feature(feature, distances, trsd):
         new_Xg.append(Xgi)
     return new_Xg
     
-def Linkreg(expression_file, track_files, output):
-    logger = logging.getLogger(__name__)
-    parser = argparse.ArgumentParser(description='Linkreg')
-    parser.add_argument('--expression_input', type=str, default='')
-    parser.add_argument('--tracks_input', type=str, nargs='+', default=[''])
-    parser.add_argument('--output', type=str, default='')
-    parser.add_argument('--Kg', type=int, default=15)
-    parser.add_argument('--distance', type=int, default=500000)
-    args = parser.parse_args()
-    genes = process(args.expression_input, args.tracks_input, args.distance)
+def Linkreg(expression_file, track_files, output, Kg=15, distance=500000):
+    genes = process(expression_file, track_files, distance)
     X, y = [], []
     pi, K = [], []
     for g in range(len(genes)):
@@ -336,7 +328,7 @@ def Linkreg(expression_file, track_files, output):
         X.append(Xg)
         y.append(np.array(gene.expression))
         #y.append(np.array(gene.expression))
-        K.append(args.Kg)
+        K.append(Kg)
         pi.append([prior.tolist() for _ in range(K[-1])])
     alpha, beta_hat, sigma, beta_track, est, K, scales, converge, variance = model(X, y, K=K, genes=genes, parallel=True, allow_scale_change=False, scale_change=False, norm_beta=False, pi=pi, ridge=0)
     pip = cal_pip(alpha, len(genes))
@@ -356,6 +348,15 @@ def Linkreg(expression_file, track_files, output):
         for i in range(gene.cCRE_num):
             results.append([gene.chromosome, gene.gene_body[0], gene.gene_body[1], gene.ID, gene.strand, gene.cCRE_loc[0], gene.cCRE_loc[1]])
             results[-1] += (gene.cCRE[i*gene.cell_num+np.arange(gene.cell_num), 0]*gene.pip[i]).tolist()
+    np.savetxt(output, results, delimiter='\t', fmt='%s')
 
 if __name__ == '__main__':
-    Linkreg()
+    logger = logging.getLogger(__name__)
+    parser = argparse.ArgumentParser(description='Linkreg')
+    parser.add_argument('--expression_input', type=str, default='')
+    parser.add_argument('--tracks_input', type=str, nargs='+', default=[''])
+    parser.add_argument('--output', type=str, default='')
+    parser.add_argument('--Kg', type=int, default=15)
+    parser.add_argument('--distance', type=int, default=500000)
+    args = parser.parse_args()
+    Linkreg(args.expression_input, args.tracks_input, args.output, args.Kg, args.distance)
