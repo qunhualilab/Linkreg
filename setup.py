@@ -9,5 +9,6 @@ setup(
             'Linkreg=Linkreg.Linkreg:main',  # "script_name=package.module:function"
         ],
     },
+    url='https://github.com/qunhualilab/Linkreg',
     # Add more metadata as needed
 )
