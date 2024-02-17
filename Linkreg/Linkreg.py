@@ -41,6 +41,7 @@ def cal_variance(X, y, K, alpha, sigma, converge, beta_hat):
     ng = len(X)
     nc = [len(X[g]) for g in range(ng)]
     l = [len(X[g][0]) for g in range(ng)]
+    
     converge_idx = np.arange(ng)[converge==1]
     Sigma = []
     for g in converge_idx:
@@ -52,7 +53,7 @@ def cal_variance(X, y, K, alpha, sigma, converge, beta_hat):
             Sigmag.append(Sigmagk)
         Sigma.append(Sigmag)
     alpha_sumk = [np.sum(alpha[g], axis=0).tolist() for g in range(ng)]
-    G = np.array([[np.dot(alpha_sumk[g], X[g][i]) for i in range(nc[g])] for g in converge_idx])
+    G = [[np.dot(alpha_sumk[g], X[g][i]) for i in range(nc[g])] for g in converge_idx]
     first = 0.
     for j, g in enumerate(converge_idx):
         for i in range(nc[g]):
@@ -60,16 +61,22 @@ def cal_variance(X, y, K, alpha, sigma, converge, beta_hat):
             for k in range(K[g]):
                 soft += np.dot(np.dot(X[g][i].transpose(), Sigma[j][k]), X[g][i])
             first += (np.outer(G[j][i], G[j][i]) + soft) / sigma[g]**2
+
     Xg = [np.transpose([np.dot(alpha_sumk[g], X[g][i])/sigma[g]**2 for i in range(nc[g])]) for g in converge_idx]
+    
+    Xgmprod = [[] for _ in range(len(converge_idx))]
+    for j, g in enumerate(converge_idx):
+        for m in range(nc[g]):
+            Xgmprod[j].append(np.dot(X[g][m], beta_hat))
+    Sigmaj = [np.sum(np.array(Sigma[j]), axis=0) for j in range(len(converge_idx))]
     var_y = []
     for j, g in enumerate(converge_idx):
         var_yg = np.zeros((nc[g], nc[g]))
         for m in range(nc[g]):
-            for n in range(nc[g]):
-                var_yg[m, n] = np.dot(np.dot(np.transpose(np.dot(X[g][m], beta_hat)), np.sum(np.array(Sigma[j]), axis=0)), np.dot(X[g][n], beta_hat))
+            for n in range(m, nc[g]):
+                var_yg[m, n] = var_yg[n, m] = np.dot(np.dot(np.transpose(Xgmprod[j][m]), Sigmaj[j]), Xgmprod[j][n])
                 if m == n: var_yg[m, n] += sigma[g]**2
         var_y.append(var_yg)
-    var_y = np.array(var_y)
     middle = 0
     for g in range(len(converge_idx)):
         middle += np.dot(np.dot(Xg[g], var_y[g]), np.transpose(Xg[g]))
